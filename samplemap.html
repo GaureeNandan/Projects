@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <h1>Click the Map to Select Coordinates</h1>
+    <div id="map" style="width: 800px; height: 600px;"></div>
+    <p id="coordinates"></p>
+
+    <button onclick="sendCoordinatesAndClose()">Get Coordinates and Close</button>
+
+    <script>
+        var map = L.map('map').setView([10.904105, 76.900907], 16);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let coordinates = [];
+
+        map.on('click', function(e) {
+            var lat = e.latlng.lat.toFixed(6);
+            var lng = e.latlng.lng.toFixed(6);
+            document.getElementById('coordinates').innerText = `Latitude: ${lat}, Longitude: ${lng}`;
+            coordinates.push({ lat: lat, lng: lng }); // Store coordinates locally
+        });
+
+        function sendCoordinatesAndClose() {
+            // Send coordinates to the backend
+            fetch('http://localhost:5000/receive_coords', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(coordinates)
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.close(); // Close the browser tab
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
